@@ -14,7 +14,7 @@ Welcome to your new app.
 
     protected override async Task OnInitializedAsync()
     {
-        Debugger.Break();
+        //Debugger.Break();
         await base.OnInitializedAsync();
         await _cookieUtil.SetValueAsync("a", "a",path:"/",domain:"localhost",secure:true);
         await _cookieUtil.SetValueAsync(key: "b", value: "a",span:TimeSpan.Zero);
