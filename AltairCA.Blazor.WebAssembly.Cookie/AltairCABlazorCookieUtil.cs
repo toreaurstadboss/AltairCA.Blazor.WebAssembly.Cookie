@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using AltairCA.Blazor.WebAssembly.Cookie.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -6,35 +7,6 @@ using Newtonsoft.Json;
 
 namespace AltairCA.Blazor.WebAssembly.Cookie
 {
-    public interface IAltairCABlazorCookieUtil
-    {
-        /// <summary>
-        /// Set a object in the cookie
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <param name="span"></param>
-        /// <param name="path"></param>
-        /// <param name="domain"></param>
-        /// <param name="secure"></param>
-        /// <returns></returns>
-        Task SetValueAsync(string key, object value, TimeSpan? span = null, string path = null,
-            string domain = null, bool? secure = null);
-        /// <summary>
-        /// Set a string in the cookie
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <param name="span"></param>
-        /// <param name="path"></param>
-        /// <param name="domain"></param>
-        /// <param name="secure"></param>
-        /// <returns></returns>
-        Task SetValueAsync(string key, string value, TimeSpan? span = null,string path=null,string domain=null,bool? secure = null);
-        Task<string> GetValueAsync(string key);
-        Task<T> GetValueAsync<T>(string key) where T : class;
-        Task RemoveAsync(string key, string path = null);
-    }
 
     internal class AltairCABlazorCookieUtil : IAltairCABlazorCookieUtil
     {
@@ -47,11 +19,11 @@ namespace AltairCA.Blazor.WebAssembly.Cookie
         }
 
         public Task SetValueAsync(string key, object value, TimeSpan? span = null, string path = null,
-            string domain = null, bool? secure = null)
+            string domain = null, bool? secure = null, SameSite? sameSite = null)
         {
             return SetValueAsync(key, JsonConvert.SerializeObject(value), span, path, domain, secure);
         }
-        public async Task SetValueAsync(string key, string value, TimeSpan? span = null,string path=null,string domain=null,bool? secure = null)
+        public async Task SetValueAsync(string key, string value, TimeSpan? span = null, string? path=null, string? domain=null, bool? secure = null, SameSite? sameSite = null)
         {
             if (string.IsNullOrWhiteSpace(path))
                 path = _settings.Path;
@@ -73,7 +45,10 @@ namespace AltairCA.Blazor.WebAssembly.Cookie
                 keyvals.Add($"domain={domain}");
             if(secure.HasValue && secure.Value)
                 keyvals.Add("secure");
-            
+            if (sameSite.HasValue){
+                DescriptionAttribute desc = (DescriptionAttribute) typeof(SameSite).GetMember(sameSite.Value.ToString()).First().GetCustomAttributes(typeof(DescriptionAttribute), false).First();
+                keyvals.Add($"samesite={desc.Description}");
+            }            
             
             await SetCookie(string.Join(";", keyvals));
         }

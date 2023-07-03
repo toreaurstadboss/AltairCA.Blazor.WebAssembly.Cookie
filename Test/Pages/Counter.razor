@@ -1,5 +1,6 @@
 @page "/counter"
 @using AltairCA.Blazor.WebAssembly.Cookie
+@using AltairCA.Blazor.WebAssembly.Cookie.Models;
 @using Newtonsoft.Json
 @inject IAltairCABlazorCookieUtil _cookieUtil;
 <PageTitle>Counter</PageTitle>
@@ -18,12 +19,13 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        await _cookieUtil.SetValueAsync("c", "huththoo ooooo");
+        await _cookieUtil.SetValueAsync("c", "this is cookie with key c");
         await _cookieUtil.SetValueAsync("d", new
         {
-            hello = "hello world"
+            hello = "hello world. i am a cookie with key d"
         });
-        
+        await _cookieUtil.SetValueAsync("cookieWithSameSiteSet", "this cookie is only set for same site, cross site requests does not send this cookie according to SameSite value (lax | strict | none)", sameSite: SameSite.Lax);
+
     }
 
     private async Task IncrementCount()
