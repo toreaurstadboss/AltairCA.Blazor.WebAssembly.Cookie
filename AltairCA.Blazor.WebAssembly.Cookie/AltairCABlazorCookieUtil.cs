@@ -18,12 +18,16 @@ namespace AltairCA.Blazor.WebAssembly.Cookie
             _settings = options.Value;
         }
 
-        public Task SetValueAsync(string key, object value, TimeSpan? span = null, string path = null,
-            string domain = null, bool? secure = null, SameSite? sameSite = null)
+        public Task SetValueAsync(string key, object value, TimeSpan? span = null, string? path = null,
+            string? domain = null, bool? secure = null, SameSite? sameSite = null, bool? partitioned = null, bool? isSession = null,
+            int? maxAgeInSeconds = null)
         {
-            return SetValueAsync(key, JsonConvert.SerializeObject(value), span, path, domain, secure);
+            return SetValueAsync(key, JsonConvert.SerializeObject(value), span, path, domain, secure, sameSite, partitioned,
+                isSession);
         }
-        public async Task SetValueAsync(string key, string value, TimeSpan? span = null, string? path=null, string? domain=null, bool? secure = null, SameSite? sameSite = null)
+        public async Task SetValueAsync(string key, string value, TimeSpan? span = null, string? path=null, string? domain=null, 
+            bool? secure = null, SameSite? sameSite = null, bool? partitioned = null, bool? isSession = null,
+             int? maxAgeInSeconds = null)
         {
             if (string.IsNullOrWhiteSpace(path))
                 path = _settings.Path;
@@ -34,8 +38,7 @@ namespace AltairCA.Blazor.WebAssembly.Cookie
             if (!secure.HasValue)
                 secure = _settings.IsSecure;
             
-            var curExp = span.HasValue && span.Value.Ticks > 0 ?  DateToUTC(span.Value) : "";
-            
+            var curExp = span.HasValue && span.Value.Ticks > 0 && isSession != true && !maxAgeInSeconds.HasValue ?  DateToUTC(span.Value) : "";            
             
             List<string> keyvals = new List<string>();
             keyvals.Add($"{key}={value}");
@@ -45,12 +48,20 @@ namespace AltairCA.Blazor.WebAssembly.Cookie
                 keyvals.Add($"domain={domain}");
             if(secure.HasValue && secure.Value)
                 keyvals.Add("secure");
+            if (maxAgeInSeconds.HasValue && isSession != true)
+            {
+                keyvals.Add($"max-age={maxAgeInSeconds.Value}");
+            }
             if (sameSite.HasValue){
                 DescriptionAttribute desc = (DescriptionAttribute) typeof(SameSite).GetMember(sameSite.Value.ToString()).First().GetCustomAttributes(typeof(DescriptionAttribute), false).First();
                 keyvals.Add($"samesite={desc.Description}");
-            }            
+            } 
+            string cookieToSet = string.Join(";", keyvals);
+            if (partitioned == true){
+                cookieToSet += ";partitioned";
+            }
             
-            await SetCookie(string.Join(";", keyvals));
+            await SetCookie(cookieToSet);
         }
 
         public async Task RemoveAsync(string key,string path = null)

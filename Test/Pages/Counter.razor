@@ -16,23 +16,26 @@
     private int currentCount = 0;
     private string Content = "";
     private object ContentObj = null;
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-        await _cookieUtil.SetValueAsync("c", "this is cookie with key c");
-        await _cookieUtil.SetValueAsync("d", new
-        {
-            hello = "hello world. i am a cookie with key d"
-        });
-        await _cookieUtil.SetValueAsync("cookieWithSameSiteSet", "this cookie is only set for same site, cross site requests does not send this cookie according to SameSite value (lax | strict | none)", sameSite: SameSite.Lax);
-
-    }
 
     private async Task IncrementCount()
     {
         currentCount++;
         Content = await _cookieUtil.GetValueAsync("c");
         ContentObj = await _cookieUtil.GetValueAsync<object>("d");
+
+        await _cookieUtil.SetValueAsync("c", "this is cookie with key c");
+        await _cookieUtil.SetValueAsync("d", new
+        {
+            hello = "hello world. i am a cookie with key d"
+        });
+        await _cookieUtil.SetValueAsync("cookieWithSameSiteSet", "Cookie which specified cross site request inclusion of the cookie : SameSite value (lax | strict | none)", sameSite: SameSite.Lax);
+
+        await _cookieUtil.SetValueAsync("cookiePartitioned", "Partitioned cookie", partitioned: true);
+     
+        await _cookieUtil.SetValueAsync("cookieWithMaxAge", "Max age cookie", maxAgeInSeconds: 600);
+
+        await _cookieUtil.SetValueAsync("cookieWhichIsToBeSetToSessionCookie", "Session cookie = temporal cookie", isSession: true);
+
     }
 
 }
